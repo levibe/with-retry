@@ -98,14 +98,15 @@ export async function withRetry<T>(
 				break
 			}
 
-			delay = Math.min(delay * backoffFactor, maxDelay)
-			
 			// Add jitter to prevent thundering herd problem
 			const actualDelay = jitter 
 				? delay * (0.5 + Math.random() * 0.5) // Random between 50-100% of delay
 				: delay
 			
 			await new Promise(resolve => setTimeout(resolve, actualDelay))
+			
+			// Calculate next delay after the current retry
+			delay = Math.min(delay * backoffFactor, maxDelay)
 		}
 	}
 
