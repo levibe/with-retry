@@ -98,14 +98,15 @@ describe('withRetry', () => {
 		const promise = withRetry(operation, {
 			maxAttempts: 2,
 			initialDelay: 100,
-			maxDelay: 500,
+			maxDelay: 150,
 			backoffFactor: 10,
 			jitter: false
 		})
 
+		// First attempt fails immediately
 		await vi.runAllTimersAsync()
-		// Should use maxDelay (500) instead of calculated delay (100 * 10 = 1000)
-		await vi.advanceTimersByTimeAsync(500)
+		// Should use initialDelay (100ms) for first retry, not calculated delay
+		await vi.advanceTimersByTimeAsync(100)
 
 		const result = await promise
 		expect(result).toBe('success')
@@ -189,5 +190,57 @@ describe('withRetry', () => {
 		const result = await withRetry(operation)
 		expect(result).toBe('success')
 		expect(operation).toHaveBeenCalledTimes(1)
+	})
+
+	it('should validate operation parameter', async () => {
+		// @ts-expect-error Testing invalid input
+		await expect(withRetry(null)).rejects.toThrow('operation must be a function')
+		// @ts-expect-error Testing invalid input
+		await expect(withRetry('not a function')).rejects.toThrow('operation must be a function')
+	})
+
+	it('should validate options parameters', async () => {
+		const operation = vi.fn().mockResolvedValue('success')
+
+		await expect(withRetry(operation, { maxAttempts: 0 })).rejects.toThrow('maxAttempts must be at least 1')
+		await expect(withRetry(operation, { initialDelay: -1 })).rejects.toThrow('initialDelay must be non-negative')
+		await expect(withRetry(operation, { maxDelay: 50, initialDelay: 100 })).rejects.toThrow('maxDelay must be greater than or equal to initialDelay')
+		await expect(withRetry(operation, { backoffFactor: 0 })).rejects.toThrow('backoffFactor must be positive')
+		// @ts-expect-error Testing invalid input
+		await expect(withRetry(operation, { shouldRetry: 'not a function' })).rejects.toThrow('shouldRetry must be a function')
+	})
+
+	it('should handle non-Error thrown values', async () => {
+		const operation = vi.fn()
+			.mockImplementationOnce(() => Promise.reject('string error'))
+			.mockResolvedValue('success')
+
+		const promise = withRetry(operation, {
+			maxAttempts: 2,
+			initialDelay: 10,
+			jitter: false
+		})
+
+		await vi.runAllTimersAsync()
+		
+		const result = await promise
+		expect(result).toBe('success')
+		expect(operation).toHaveBeenCalledTimes(2)
+	})
+
+	it('should handle rejection after shouldRetry returns false', async () => {
+		const error = new Error('permanent error')
+		const operation = vi.fn().mockImplementation(() => Promise.reject(error))
+		const shouldRetry = vi.fn().mockReturnValue(false)
+
+		const promise = withRetry(operation, {
+			maxAttempts: 5,
+			shouldRetry
+		})
+
+		await expect(promise).rejects.toThrow('permanent error')
+		expect(operation).toHaveBeenCalledTimes(1)
+		expect(shouldRetry).toHaveBeenCalledTimes(1)
+		expect(shouldRetry).toHaveBeenCalledWith(error)
 	})
 })
