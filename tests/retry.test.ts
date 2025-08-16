@@ -23,8 +23,8 @@ describe('withRetry', () => {
 
 	it('should retry on failure and eventually succeed', async () => {
 		const operation = vi.fn()
-			.mockRejectedValueOnce(new Error('fail 1'))
-			.mockRejectedValueOnce(new Error('fail 2'))
+			.mockImplementationOnce(() => Promise.reject(new Error('fail 1')))
+			.mockImplementationOnce(() => Promise.reject(new Error('fail 2')))
 			.mockResolvedValue('success')
 
 		const promise = withRetry(operation, {
@@ -47,7 +47,7 @@ describe('withRetry', () => {
 
 	it('should throw after max attempts', async () => {
 		const error = new Error('persistent failure')
-		const operation = vi.fn().mockRejectedValue(error)
+		const operation = vi.fn().mockImplementation(() => Promise.reject(error))
 
 		const promise = withRetry(operation, {
 			maxAttempts: 2,
@@ -55,17 +55,24 @@ describe('withRetry', () => {
 			jitter: false
 		})
 
-		await vi.runAllTimersAsync()
+		// Run timers and wait for promise to settle
+		const [, result] = await Promise.allSettled([
+			vi.runAllTimersAsync(),
+			promise
+		])
 
-		await expect(promise).rejects.toThrow('persistent failure')
+		expect(result.status).toBe('rejected')
+		if (result.status === 'rejected') {
+			expect(result.reason.message).toBe('persistent failure')
+		}
 		expect(operation).toHaveBeenCalledTimes(2)
 	})
 
 	it('should use exponential backoff', async () => {
 		const operation = vi.fn()
-			.mockRejectedValueOnce(new Error('fail 1'))
-			.mockRejectedValueOnce(new Error('fail 2'))
-			.mockRejectedValueOnce(new Error('fail 3'))
+			.mockImplementationOnce(() => Promise.reject(new Error('fail 1')))
+			.mockImplementationOnce(() => Promise.reject(new Error('fail 2')))
+			.mockImplementationOnce(() => Promise.reject(new Error('fail 3')))
 			.mockResolvedValue('success')
 
 		const promise = withRetry(operation, {
@@ -85,19 +92,19 @@ describe('withRetry', () => {
 
 	it('should respect maxDelay', async () => {
 		const operation = vi.fn()
-			.mockRejectedValueOnce(new Error('fail'))
+			.mockImplementationOnce(() => Promise.reject(new Error('fail')))
 			.mockResolvedValue('success')
 
 		const promise = withRetry(operation, {
 			maxAttempts: 2,
-			initialDelay: 1000,
+			initialDelay: 100,
 			maxDelay: 500,
 			backoffFactor: 10,
 			jitter: false
 		})
 
 		await vi.runAllTimersAsync()
-		// Should use maxDelay (500) instead of calculated delay (1000)
+		// Should use maxDelay (500) instead of calculated delay (100 * 10 = 1000)
 		await vi.advanceTimersByTimeAsync(500)
 
 		const result = await promise
@@ -107,7 +114,7 @@ describe('withRetry', () => {
 
 	it('should apply jitter when enabled', async () => {
 		const operation = vi.fn()
-			.mockRejectedValueOnce(new Error('fail'))
+			.mockImplementationOnce(() => Promise.reject(new Error('fail')))
 			.mockResolvedValue('success')
 
 		// Mock Math.random to return a predictable value
@@ -136,8 +143,8 @@ describe('withRetry', () => {
 		const normalError = new Error('normal')
 		
 		const operation = vi.fn()
-			.mockRejectedValueOnce(normalError)
-			.mockRejectedValueOnce(specialError)
+			.mockImplementationOnce(() => Promise.reject(normalError))
+			.mockImplementationOnce(() => Promise.reject(specialError))
 
 		const shouldRetry = vi.fn((error: Error) => error.message !== 'special')
 
@@ -148,9 +155,16 @@ describe('withRetry', () => {
 			jitter: false
 		})
 
-		await vi.runAllTimersAsync()
+		// Run timers and wait for promise to settle
+		const [, result] = await Promise.allSettled([
+			vi.runAllTimersAsync(),
+			promise
+		])
 
-		await expect(promise).rejects.toThrow('special')
+		expect(result.status).toBe('rejected')
+		if (result.status === 'rejected') {
+			expect(result.reason.message).toBe('special')
+		}
 		expect(operation).toHaveBeenCalledTimes(2)
 		expect(shouldRetry).toHaveBeenCalledTimes(2)
 		expect(shouldRetry).toHaveBeenCalledWith(normalError)
@@ -159,7 +173,7 @@ describe('withRetry', () => {
 
 	it('should not retry when shouldRetry returns false immediately', async () => {
 		const error = new Error('do not retry')
-		const operation = vi.fn().mockRejectedValue(error)
+		const operation = vi.fn().mockImplementation(() => Promise.reject(error))
 
 		const promise = withRetry(operation, {
 			maxAttempts: 5,
