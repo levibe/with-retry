@@ -12,6 +12,10 @@
     "prepare": "npm run build",
     "test": "vitest",
     "test:watch": "vitest --watch",
+    "test:coverage": "vitest --run --coverage",
+    "lint": "eslint src tests --ext .ts",
+    "lint:fix": "eslint src tests --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build"
   },
   "keywords": [
@@ -26,8 +30,12 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.33.0",
     "typescript": "^5.0.0",
-    "vitest": "^2.0.0"
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -39,5 +47,14 @@
   "homepage": "https://github.com/levibe/with-retry#readme",
   "bugs": {
     "url": "https://github.com/levibe/with-retry/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   }
 }
