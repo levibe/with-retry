@@ -1,0 +1,16 @@
+src/
+tests/
+coverage/
+.git/
+.github/
+.claude/
+*.log
+.DS_Store
+.env
+.env.local
+tsconfig.json
+vitest.config.ts
+pnpm-lock.yaml
+*.md
+!README.md
+!LICENSE
