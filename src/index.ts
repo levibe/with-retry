@@ -47,6 +47,11 @@ export async function withRetry<T>(
 	operation: () => Promise<T>,
 	options: RetryOptions = {}
 ): Promise<T> {
+	// Validate operation parameter
+	if (typeof operation !== 'function') {
+		throw new TypeError('operation must be a function')
+	}
+
 	const {
 		maxAttempts = 10,
 		initialDelay = 1000,
@@ -56,6 +61,23 @@ export async function withRetry<T>(
 		shouldRetry = () => true
 	} = options
 
+	// Validate numeric options
+	if (maxAttempts < 1) {
+		throw new RangeError('maxAttempts must be at least 1')
+	}
+	if (initialDelay < 0) {
+		throw new RangeError('initialDelay must be non-negative')
+	}
+	if (maxDelay < initialDelay) {
+		throw new RangeError('maxDelay must be greater than or equal to initialDelay')
+	}
+	if (backoffFactor <= 0) {
+		throw new RangeError('backoffFactor must be positive')
+	}
+	if (typeof shouldRetry !== 'function') {
+		throw new TypeError('shouldRetry must be a function')
+	}
+
 	let lastError: Error | undefined
 	let delay = initialDelay
 
@@ -64,7 +86,8 @@ export async function withRetry<T>(
 			const result = await operation()
 			return result
 		} catch (error) {
-			lastError = error as Error
+			// Ensure we always have an Error instance
+			lastError = error instanceof Error ? error : new Error(String(error))
 			
 			if (attempt === maxAttempts) {
 				break
