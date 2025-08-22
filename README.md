@@ -153,6 +153,15 @@ interface RetryOptions {
 
 This package is written in TypeScript and includes full type definitions. Both the main function and options interface are exported for type safety.
 
+## Version History
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes in each version.
+
+### Recent Changes
+
+- **v0.2.0** - Added `onRetry` callback for monitoring retry attempts
+- **v0.1.0** - Initial release with core retry functionality
+
 ## License
 
 MIT © Levi Bucsis
