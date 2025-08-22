@@ -14,6 +14,8 @@ export interface RetryOptions {
 	jitter?: boolean
 	/** Custom function to determine if an error should trigger a retry (default: always retry) */
 	shouldRetry?: (error: Error) => boolean
+	/** Callback executed before each retry attempt */
+	onRetry?: (error: Error, attempt: number) => void | Promise<void>
 }
 
 /**
@@ -41,6 +43,16 @@ export interface RetryOptions {
  *   initialDelay: 500,
  *   shouldRetry: (error) => error.message !== 'FATAL'
  * })
+ * 
+ * // With onRetry callback for logging
+ * const result = await withRetry(async () => {
+ *   return await apiCall()
+ * }, {
+ *   maxAttempts: 3,
+ *   onRetry: (error, attempt) => {
+ *     console.warn(`Retry attempt ${attempt} due to: ${error.message}`)
+ *   }
+ * })
  * ```
  */
 export async function withRetry<T>(
@@ -58,7 +70,8 @@ export async function withRetry<T>(
 		maxDelay = 30000,
 		backoffFactor = 2,
 		jitter = true,
-		shouldRetry = () => true
+		shouldRetry = () => true,
+		onRetry
 	} = options
 
 	// Validate numeric options
@@ -96,6 +109,16 @@ export async function withRetry<T>(
 			// Check if we should retry this error
 			if (!shouldRetry(lastError)) {
 				break
+			}
+
+			// Call onRetry callback before retrying
+			if (onRetry) {
+				try {
+					await onRetry(lastError, attempt)
+				} catch (onRetryError) {
+					// If onRetry throws, stop retrying and throw that error
+					throw onRetryError
+				}
 			}
 
 			// Add jitter to prevent thundering herd problem

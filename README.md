@@ -69,6 +69,30 @@ await withRetry(async () => {
 })
 ```
 
+### Monitoring Retries
+
+```typescript
+// Log retry attempts for debugging
+await withRetry(async () => {
+  return await apiCall()
+}, {
+  maxAttempts: 3,
+  onRetry: (error, attempt) => {
+    console.warn(`Retry attempt ${attempt} due to: ${error.message}`)
+  }
+})
+
+// Async cleanup between retries
+await withRetry(async () => {
+  return await apiCall()
+}, {
+  onRetry: async (error, attempt) => {
+    await cleanupResources()
+    await metrics.recordRetry(error, attempt)
+  }
+})
+```
+
 ### Database Operations
 
 ```typescript
@@ -107,6 +131,7 @@ interface RetryOptions {
   backoffFactor?: number    // Exponential backoff multiplier (default: 2)
   jitter?: boolean          // Add randomness to delays (default: true)
   shouldRetry?: (error: Error) => boolean  // Custom retry logic (default: always retry)
+  onRetry?: (error: Error, attempt: number) => void | Promise<void>  // Callback before each retry
 }
 ```
 
@@ -121,6 +146,7 @@ interface RetryOptions {
 
 - If all retry attempts fail, the last error is thrown
 - If `shouldRetry` returns `false`, retrying stops immediately
+- If `onRetry` throws an error, retrying stops and that error is thrown
 - Errors are passed to `shouldRetry` for custom handling logic
 
 ## TypeScript Support
