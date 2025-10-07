@@ -1,6 +1,6 @@
 {
   "name": "@levibe/with-retry",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "A TypeScript retry utility with exponential backoff and jitter",
   "main": "dist/index.js",
