@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
+    "module": "ES2022",
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./src",
@@ -16,7 +16,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node"
+    "moduleResolution": "bundler"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"]
