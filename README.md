@@ -12,13 +12,30 @@ I'm making this available for anyone who might share that preference.
 
 ## Installation
 
-Install directly from GitHub:
+This package is published to GitHub Packages. You'll need to configure npm/pnpm to authenticate with GitHub Packages:
+
+### 1. Create a `.npmrc` file in your project root:
+
+```
+@levibe:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_NPM_TOKEN}
+```
+
+### 2. Set your GitHub token:
 
 ```bash
-npm install github:levibe/with-retry
-# or
-npm install git+https://github.com/levibe/with-retry.git
+export GITHUB_NPM_TOKEN="your-github-token-with-read-packages-scope"
 ```
+
+### 3. Install the package:
+
+```bash
+npm install @levibe/with-retry
+# or
+pnpm install @levibe/with-retry
+```
+
+**Note:** You'll need a GitHub Personal Access Token with `read:packages` scope. See [GitHub's documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-with-a-personal-access-token) for details.
 
 ## Usage
 
