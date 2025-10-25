@@ -51,7 +51,8 @@
     "url": "https://github.com/levibe/with-retry/issues"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
   },
   "exports": {
     ".": {
