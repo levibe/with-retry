@@ -12,30 +12,72 @@ I'm making this available for anyone who might share that preference.
 
 ## Installation
 
-This package is published to GitHub Packages. You'll need to configure npm/pnpm to authenticate with GitHub Packages:
+This package is published to GitHub Packages. Follow these steps to install it.
 
-### 1. Create a `.npmrc` file in your project root:
+### One-Time Setup
+
+This setup is done **once** and works for all `@levibe` packages.
+
+#### 1. Create GitHub Personal Access Token
+
+Create a token at https://github.com/settings/tokens/new:
+
+- Name: `npm-read-packages`
+- Expiration: 90 days (or No expiration)
+- Scopes: ✅ `read:packages`
+
+**Important:** Copy the token immediately—you won't see it again!
+
+#### 2. Store Token in macOS Keychain
+
+```bash
+# Store token securely
+security add-generic-password \
+  -a "$USER" \
+  -s "github-npm-read-token" \
+  -w "ghp_your_token_here"
+
+# Verify it's stored
+security find-generic-password -a "$USER" -s "github-npm-read-token" -w
+```
+
+#### 3. Add to Shell Configuration (~/.zshrc)
+
+```bash
+# GitHub Packages - Read token for installing packages
+export GITHUB_NPM_TOKEN=$(security find-generic-password -a "$USER" -s "github-npm-read-token" -w 2>/dev/null)
+```
+
+Then reload your shell:
+
+```bash
+source ~/.zshrc
+```
+
+**Verify setup:**
+
+```bash
+echo $GITHUB_NPM_TOKEN  # Should show your token
+```
+
+### Installing the Package
+
+#### 1. Create `.npmrc` in your project root:
 
 ```
 @levibe:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_NPM_TOKEN}
 ```
 
-### 2. Set your GitHub token:
+This scoped configuration **only affects `@levibe` packages**. Other packages still come from npmjs.org.
 
-```bash
-export GITHUB_NPM_TOKEN="your-github-token-with-read-packages-scope"
-```
-
-### 3. Install the package:
+#### 2. Install:
 
 ```bash
 npm install @levibe/with-retry
 # or
 pnpm install @levibe/with-retry
 ```
-
-**Note:** You'll need a GitHub Personal Access Token with `read:packages` scope. See [GitHub's documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-with-a-personal-access-token) for details.
 
 ## Usage
 
@@ -169,6 +211,73 @@ interface RetryOptions {
 ## TypeScript Support
 
 This package is written in TypeScript and includes full type definitions. Both the main function and options interface are exported for type safety.
+
+## Publishing (Maintainers Only)
+
+### Automated Publishing (Recommended)
+
+The repository includes GitHub Actions workflows that automatically publish to GitHub Packages when you create a release:
+
+1. **Update version and changelog**
+   ```bash
+   # Update package.json version (follow semver)
+   # Update CHANGELOG.md with changes
+   git add .
+   git commit -m "Bump version to X.Y.Z"
+   git push
+   ```
+
+2. **Create a GitHub Release**
+   - Go to https://github.com/levibe/with-retry/releases/new
+   - Tag version: `vX.Y.Z` (must match package.json version)
+   - Release title: `vX.Y.Z`
+   - Describe the changes
+   - Click "Publish release"
+
+3. **Automatic publish**
+   - GitHub Actions will automatically publish to GitHub Packages
+   - The workflow validates that the tag version matches package.json
+   - View progress in the Actions tab
+
+### Manual Publishing
+
+For local publishing, set up a write token:
+
+**Setup (one-time):**
+
+Create a token at https://github.com/settings/tokens/new:
+- Name: `npm-write-packages`
+- Scopes: ✅ `write:packages`
+
+Store in keychain:
+
+```bash
+security add-generic-password \
+  -a "$USER" \
+  -s "github-npm-write-token" \
+  -w "ghp_your_write_token_here"
+```
+
+Add publish function to `~/.zshrc`:
+
+```bash
+github-npm-publish() {
+  GITHUB_NPM_TOKEN=$(security find-generic-password -a "$USER" -s "github-npm-write-token" -w) npm publish "$@"
+}
+```
+
+**Publishing:**
+
+```bash
+github-npm-publish
+```
+
+### GitHub Actions Workflows
+
+The repository includes two workflows:
+
+- **test.yml** - Runs on PRs and pushes to main: lint, typecheck, test, build
+- **publish.yml** - Runs on GitHub releases: validates version and publishes to GitHub Packages
 
 ## Version History
 
