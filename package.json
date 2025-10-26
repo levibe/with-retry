@@ -44,14 +44,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/levibe/with-retry.git"
+    "url": "git+https://github.com/levibe/with-retry.git"
   },
   "homepage": "https://github.com/levibe/with-retry#readme",
   "bugs": {
     "url": "https://github.com/levibe/with-retry/issues"
   },
   "publishConfig": {
-    "access": "public",
+    "access": "restricted",
     "registry": "https://npm.pkg.github.com"
   },
   "exports": {
