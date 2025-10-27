@@ -216,7 +216,7 @@ This package is written in TypeScript and includes full type definitions. Both t
 
 ### Automated Publishing (Recommended)
 
-The repository includes GitHub Actions workflows that automatically publish to GitHub Packages when you create a release:
+The repository includes GitHub Actions workflows that automatically publish to GitHub Packages when you push a version tag:
 
 1. **Update version and changelog**
    ```bash
@@ -224,20 +224,19 @@ The repository includes GitHub Actions workflows that automatically publish to G
    # Update CHANGELOG.md with changes
    git add .
    git commit -m "Bump version to X.Y.Z"
-   git push
    ```
 
-2. **Create a GitHub Release**
-   - Go to https://github.com/levibe/with-retry/releases/new
-   - Tag version: `vX.Y.Z` (must match package.json version)
-   - Release title: `vX.Y.Z`
-   - Describe the changes
-   - Click "Publish release"
+2. **Create and push tag**
+   ```bash
+   git tag vX.Y.Z
+   git push && git push --tags
+   ```
 
 3. **Automatic publish**
-   - GitHub Actions will automatically publish to GitHub Packages
+   - GitHub Actions automatically triggers on tag push
    - The workflow validates that the tag version matches package.json
-   - View progress in the Actions tab
+   - Package is published to GitHub Packages
+   - View progress at https://github.com/levibe/with-retry/actions
 
 ### Manual Publishing
 
@@ -277,7 +276,7 @@ github-npm-publish
 The repository includes two workflows:
 
 - **test.yml** - Runs on PRs and pushes to main: lint, typecheck, test, build
-- **publish.yml** - Runs on GitHub releases: validates version and publishes to GitHub Packages
+- **publish.yml** - Runs on version tag pushes: validates version and publishes to GitHub Packages
 
 ## Version History
 
