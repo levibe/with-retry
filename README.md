@@ -1,5 +1,9 @@
 # @levibe/with-retry
 
+[![npm version](https://img.shields.io/npm/v/@levibe/with-retry)](https://www.npmjs.com/package/@levibe/with-retry)
+[![npm downloads](https://img.shields.io/npm/dm/@levibe/with-retry)](https://www.npmjs.com/package/@levibe/with-retry)
+[![license](https://img.shields.io/npm/l/@levibe/with-retry)](https://github.com/levibe/with-retry/blob/main/LICENSE)
+
 A TypeScript retry utility with exponential backoff and jitter, designed for robust error handling in asynchronous operations.
 
 ## Why Another Retry Library?
@@ -153,42 +157,11 @@ This package is written in TypeScript and includes full type definitions. Both t
 
 ## Publishing (Maintainers Only)
 
-### Automated Publishing (Recommended)
-
-The repository includes GitHub Actions workflows that automatically publish to npm when you push a version tag:
-
-1. **Update version and changelog**
-   ```bash
-   # Update package.json version (follow semver)
-   # Update CHANGELOG.md with changes
-   git add .
-   git commit -m "Bump version to X.Y.Z"
-   ```
-
-2. **Create and push tag**
-   ```bash
-   git tag vX.Y.Z
-   git push && git push --tags
-   ```
-
-3. **Automatic publish**
-   - GitHub Actions automatically triggers on tag push
-   - The workflow validates that the tag version matches package.json
-   - Package is published to npm
-   - View progress at https://github.com/levibe/with-retry/actions
-
-### Manual Publishing
-
 ```bash
-npmjs-publish
+pnpm publish
 ```
 
-### GitHub Actions Workflows
-
-The repository includes two workflows:
-
-- **test.yml** - Runs on PRs and pushes to main: lint, typecheck, test, build
-- **publish.yml** - Runs on version tag pushes: validates version and publishes to npm
+This runs lint, typecheck, tests, and build automatically via `prepublishOnly`.
 
 ## Version History
 
