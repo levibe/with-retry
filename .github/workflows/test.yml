@@ -26,8 +26,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-        env:
-          GITHUB_NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Lint
         run: pnpm lint
