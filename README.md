@@ -12,71 +12,10 @@ I'm making this available for anyone who might share that preference.
 
 ## Installation
 
-This package is published to GitHub Packages. Follow these steps to install it.
-
-### One-Time Setup
-
-This setup is done **once** and works for all `@levibe` packages.
-
-#### 1. Create GitHub Personal Access Token
-
-Create a token at https://github.com/settings/tokens/new:
-
-- Name: `npm-read-packages`
-- Expiration: 90 days (or No expiration)
-- Scopes: ✅ `read:packages`
-
-**Important:** Copy the token immediately—you won't see it again!
-
-#### 2. Store Token in macOS Keychain
-
-```bash
-# Store token securely
-security add-generic-password \
-  -a "$USER" \
-  -s "github-npm-read-token" \
-  -w "ghp_your_token_here"
-
-# Verify it's stored
-security find-generic-password -a "$USER" -s "github-npm-read-token" -w
-```
-
-#### 3. Add to Shell Configuration (~/.zshrc)
-
-```bash
-# GitHub Packages - Read token for installing packages
-export GITHUB_NPM_TOKEN=$(security find-generic-password -a "$USER" -s "github-npm-read-token" -w 2>/dev/null)
-```
-
-Then reload your shell:
-
-```bash
-source ~/.zshrc
-```
-
-**Verify setup:**
-
-```bash
-echo $GITHUB_NPM_TOKEN  # Should show your token
-```
-
-### Installing the Package
-
-#### 1. Create `.npmrc` in your project root:
-
-```
-@levibe:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_NPM_TOKEN}
-```
-
-This scoped configuration **only affects `@levibe` packages**. Other packages still come from npmjs.org.
-
-#### 2. Install:
-
 ```bash
 npm install @levibe/with-retry
 # or
-pnpm install @levibe/with-retry
+pnpm add @levibe/with-retry
 ```
 
 ## Usage
@@ -216,7 +155,7 @@ This package is written in TypeScript and includes full type definitions. Both t
 
 ### Automated Publishing (Recommended)
 
-The repository includes GitHub Actions workflows that automatically publish to GitHub Packages when you push a version tag:
+The repository includes GitHub Actions workflows that automatically publish to npm when you push a version tag:
 
 1. **Update version and changelog**
    ```bash
@@ -235,40 +174,13 @@ The repository includes GitHub Actions workflows that automatically publish to G
 3. **Automatic publish**
    - GitHub Actions automatically triggers on tag push
    - The workflow validates that the tag version matches package.json
-   - Package is published to GitHub Packages
+   - Package is published to npm
    - View progress at https://github.com/levibe/with-retry/actions
 
 ### Manual Publishing
 
-For local publishing, set up a write token:
-
-**Setup (one-time):**
-
-Create a token at https://github.com/settings/tokens/new:
-- Name: `npm-write-packages`
-- Scopes: ✅ `write:packages`
-
-Store in keychain:
-
 ```bash
-security add-generic-password \
-  -a "$USER" \
-  -s "github-npm-write-token" \
-  -w "ghp_your_write_token_here"
-```
-
-Add publish function to `~/.zshrc`:
-
-```bash
-github-npm-publish() {
-  GITHUB_NPM_TOKEN=$(security find-generic-password -a "$USER" -s "github-npm-write-token" -w) npm publish "$@"
-}
-```
-
-**Publishing:**
-
-```bash
-github-npm-publish
+npmjs-publish
 ```
 
 ### GitHub Actions Workflows
@@ -276,7 +188,7 @@ github-npm-publish
 The repository includes two workflows:
 
 - **test.yml** - Runs on PRs and pushes to main: lint, typecheck, test, build
-- **publish.yml** - Runs on version tag pushes: validates version and publishes to GitHub Packages
+- **publish.yml** - Runs on version tag pushes: validates version and publishes to npm
 
 ## Version History
 
