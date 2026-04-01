@@ -1,6 +1,7 @@
 {
   "name": "@levibe/with-retry",
   "version": "0.2.3",
+  "packageManager": "pnpm@10.32.1",
   "type": "module",
   "description": "A TypeScript retry utility with exponential backoff and jitter",
   "main": "dist/index.js",
@@ -11,13 +12,13 @@
   "scripts": {
     "build": "tsc && ts-add-js-extension --dir=dist",
     "prepare": "npm run build",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",
     "typecheck": "tsc --noEmit",
-    "validate": "pnpm lint && pnpm typecheck && pnpm test -- --run && pnpm build",
+    "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "prepublishOnly": "pnpm validate"
   },
   "keywords": [
@@ -53,7 +54,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org"
+    "registry": "https://npm.pkg.github.com"
   },
   "exports": {
     ".": {

@@ -1,8 +1,6 @@
 # @levibe/with-retry
 
-[![npm version](https://img.shields.io/npm/v/@levibe/with-retry)](https://www.npmjs.com/package/@levibe/with-retry)
-[![npm downloads](https://img.shields.io/npm/dm/@levibe/with-retry)](https://www.npmjs.com/package/@levibe/with-retry)
-[![license](https://img.shields.io/npm/l/@levibe/with-retry)](https://github.com/levibe/with-retry/blob/main/LICENSE)
+[![license](https://img.shields.io/github/license/levibe/with-retry)](https://github.com/levibe/with-retry/blob/main/LICENSE)
 
 A TypeScript retry utility with exponential backoff and jitter, designed for robust error handling in asynchronous operations.
 
@@ -16,9 +14,15 @@ I'm making this available for anyone who might share that preference.
 
 ## Installation
 
+This package is hosted on [GitHub Packages](https://github.com/levibe/with-retry/packages). Add the following to your project's `.npmrc`:
+
+```
+@levibe:registry=https://npm.pkg.github.com
+```
+
+Then install:
+
 ```bash
-npm install @levibe/with-retry
-# or
 pnpm add @levibe/with-retry
 ```
 
@@ -157,11 +161,7 @@ This package is written in TypeScript and includes full type definitions. Both t
 
 ## Publishing (Maintainers Only)
 
-```bash
-pnpm publish
-```
-
-This runs lint, typecheck, tests, and build automatically via `prepublishOnly`.
+Publishing is automated via GitHub Actions. Create a [GitHub release](https://github.com/levibe/with-retry/releases/new) to trigger the publish workflow.
 
 ## Version History
 
