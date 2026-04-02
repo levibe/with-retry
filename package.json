@@ -11,14 +11,16 @@
   ],
   "scripts": {
     "build": "tsc && ts-add-js-extension --dir=dist",
-    "prepare": "npm run build",
+    "prepare": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
-    "lint": "eslint src tests --ext .ts",
-    "lint:fix": "eslint src tests --ext .ts --fix",
-    "typecheck": "tsc --noEmit",
-    "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "validate": "pnpm lint && pnpm format:check && pnpm type-check && pnpm test && pnpm build",
     "prepublishOnly": "pnpm validate"
   },
   "keywords": [
@@ -32,13 +34,15 @@
   "author": "Levi Bucsis",
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^9.33.0",
     "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.39.1",
-    "@typescript-eslint/parser": "^8.39.1",
     "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
     "ts-add-js-extension": "^1.6.6",
     "typescript": "^5.0.0",
+    "typescript-eslint": "^8.58.0",
     "vitest": "^3.2.4"
   },
   "engines": {
