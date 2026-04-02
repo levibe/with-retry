@@ -16,11 +16,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.2.3] - 2025-10-26
 
 ### Changed
+
 - Update publish workflow to trigger on version tag pushes instead of GitHub Release creation for streamlined publishing
 
 ## [0.2.2] - 2025-10-26
 
 ### Added
+
 - GitHub Actions workflows for automated testing and publishing
   - Test workflow runs lint, typecheck, tests, and build on PRs and main branch pushes
   - Publish workflow automatically publishes to GitHub Packages on release creation with version validation
@@ -30,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Pre-push git hook for catching issues before CI/CD
 
 ### Changed
+
 - Configure package as private (restricted access) for GitHub Packages distribution
 - Update `prepublishOnly` to run full validation instead of just build
 - Fix ESLint configuration for ESM compatibility (rename to .cjs)
@@ -37,21 +40,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.2.1] - 2025-10-06
 
 ### Changed
+
 - Convert package to pure ESM format for compatibility with modern tooling and ESM-native bundlers like Vite
 
 ## [0.2.0] - 2025-01-22
 
 ### Added
+
 - `onRetry` callback option that executes before each retry attempt
   - Receives the error that triggered the retry and the current attempt number
   - Supports both synchronous and asynchronous callbacks
   - Useful for logging, metrics collection, and cleanup between retries
   - If the callback throws an error, retrying stops immediately
 
-
 ## [0.1.0] - 2025-01-22
 
 ### Added
+
 - Initial release of @levibe/with-retry
 - Core retry functionality with exponential backoff
 - Configurable retry options:

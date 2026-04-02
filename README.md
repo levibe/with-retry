@@ -10,7 +10,7 @@ When I went to replace this retry utility with [p-retry](https://github.com/sind
 
 I'm making this available for anyone who might share that preference.
 
-*p-retry is more battle-tested and likely the better choice for most use cases.*
+_p-retry is more battle-tested and likely the better choice for most use cases._
 
 ## Installation
 
@@ -35,9 +35,9 @@ import { withRetry } from '@levibe/with-retry'
 
 // Simple retry with defaults
 const result = await withRetry(async () => {
-  const response = await fetch('https://api.example.com/data')
-  if (!response.ok) throw new Error('Request failed')
-  return response.json()
+	const response = await fetch('https://api.example.com/data')
+	if (!response.ok) throw new Error('Request failed')
+	return response.json()
 })
 ```
 
@@ -47,17 +47,17 @@ const result = await withRetry(async () => {
 import { withRetry, RetryOptions } from '@levibe/with-retry'
 
 const options: RetryOptions = {
-  maxAttempts: 5,        // Maximum number of attempts (default: 10)
-  initialDelay: 1000,    // Initial delay in ms (default: 1000)
-  maxDelay: 30000,       // Maximum delay in ms (default: 30000)
-  backoffFactor: 2,      // Exponential backoff multiplier (default: 2)
-  jitter: true,          // Add randomness to prevent thundering herd (default: true)
-  shouldRetry: (error) => error.message !== 'FATAL' // Custom retry logic
+	maxAttempts: 5, // Maximum number of attempts (default: 10)
+	initialDelay: 1000, // Initial delay in ms (default: 1000)
+	maxDelay: 30000, // Maximum delay in ms (default: 30000)
+	backoffFactor: 2, // Exponential backoff multiplier (default: 2)
+	jitter: true, // Add randomness to prevent thundering herd (default: true)
+	shouldRetry: (error) => error.message !== 'FATAL', // Custom retry logic
 }
 
 const result = await withRetry(async () => {
-  // Your async operation here
-  return await someAsyncOperation()
+	// Your async operation here
+	return await someAsyncOperation()
 }, options)
 ```
 
@@ -65,52 +65,64 @@ const result = await withRetry(async () => {
 
 ```typescript
 // Only retry on specific errors
-await withRetry(async () => {
-  return await apiCall()
-}, {
-  shouldRetry: (error) => {
-    // Don't retry authentication errors
-    return !error.message.includes('401') && !error.message.includes('403')
-  }
-})
+await withRetry(
+	async () => {
+		return await apiCall()
+	},
+	{
+		shouldRetry: (error) => {
+			// Don't retry authentication errors
+			return !error.message.includes('401') && !error.message.includes('403')
+		},
+	}
+)
 ```
 
 ### Monitoring Retries
 
 ```typescript
 // Log retry attempts for debugging
-await withRetry(async () => {
-  return await apiCall()
-}, {
-  maxAttempts: 3,
-  onRetry: (error, attempt) => {
-    console.warn(`Retry attempt ${attempt} due to: ${error.message}`)
-  }
-})
+await withRetry(
+	async () => {
+		return await apiCall()
+	},
+	{
+		maxAttempts: 3,
+		onRetry: (error, attempt) => {
+			console.warn(`Retry attempt ${attempt} due to: ${error.message}`)
+		},
+	}
+)
 
 // Async cleanup between retries
-await withRetry(async () => {
-  return await apiCall()
-}, {
-  onRetry: async (error, attempt) => {
-    await cleanupResources()
-    await metrics.recordRetry(error, attempt)
-  }
-})
+await withRetry(
+	async () => {
+		return await apiCall()
+	},
+	{
+		onRetry: async (error, attempt) => {
+			await cleanupResources()
+			await metrics.recordRetry(error, attempt)
+		},
+	}
+)
 ```
 
 ### Database Operations
 
 ```typescript
 // Retry database connections with exponential backoff
-const data = await withRetry(async () => {
-  const connection = await db.connect()
-  return connection.query('SELECT * FROM users')
-}, {
-  maxAttempts: 3,
-  initialDelay: 500,
-  shouldRetry: (error) => error.code === 'CONNECTION_LOST'
-})
+const data = await withRetry(
+	async () => {
+		const connection = await db.connect()
+		return connection.query('SELECT * FROM users')
+	},
+	{
+		maxAttempts: 3,
+		initialDelay: 500,
+		shouldRetry: (error) => error.code === 'CONNECTION_LOST',
+	}
+)
 ```
 
 ## API Reference
@@ -120,6 +132,7 @@ const data = await withRetry(async () => {
 Executes an async operation with retry logic.
 
 **Parameters:**
+
 - `operation: () => Promise<T>` - The async function to retry
 - `options?: RetryOptions` - Configuration options
 
@@ -131,13 +144,13 @@ Configuration interface for retry behavior:
 
 ```typescript
 interface RetryOptions {
-  maxAttempts?: number      // Maximum retry attempts (default: 10)
-  initialDelay?: number     // Initial delay in milliseconds (default: 1000)
-  maxDelay?: number         // Maximum delay cap in milliseconds (default: 30000)
-  backoffFactor?: number    // Exponential backoff multiplier (default: 2)
-  jitter?: boolean          // Add randomness to delays (default: true)
-  shouldRetry?: (error: Error) => boolean  // Custom retry logic (default: always retry)
-  onRetry?: (error: Error, attempt: number) => void | Promise<void>  // Callback before each retry
+	maxAttempts?: number // Maximum retry attempts (default: 10)
+	initialDelay?: number // Initial delay in milliseconds (default: 1000)
+	maxDelay?: number // Maximum delay cap in milliseconds (default: 30000)
+	backoffFactor?: number // Exponential backoff multiplier (default: 2)
+	jitter?: boolean // Add randomness to delays (default: true)
+	shouldRetry?: (error: Error) => boolean // Custom retry logic (default: always retry)
+	onRetry?: (error: Error, attempt: number) => void | Promise<void> // Callback before each retry
 }
 ```
 

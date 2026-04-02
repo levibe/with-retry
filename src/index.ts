@@ -20,12 +20,12 @@ export interface RetryOptions {
 
 /**
  * Executes an async operation with retry logic using exponential backoff and jitter
- * 
+ *
  * @template T The return type of the operation
  * @param operation The async function to retry
  * @param options Configuration options for retry behavior
  * @returns Promise that resolves to the operation result or rejects with the last error
- * 
+ *
  * @example
  * ```typescript
  * // Basic usage with defaults
@@ -34,7 +34,7 @@ export interface RetryOptions {
  *   if (!response.ok) throw new Error('Request failed')
  *   return response.json()
  * })
- * 
+ *
  * // With custom options
  * const result = await withRetry(async () => {
  *   return await someAsyncOperation()
@@ -43,7 +43,7 @@ export interface RetryOptions {
  *   initialDelay: 500,
  *   shouldRetry: (error) => error.message !== 'FATAL'
  * })
- * 
+ *
  * // With onRetry callback for logging
  * const result = await withRetry(async () => {
  *   return await apiCall()
@@ -71,7 +71,7 @@ export async function withRetry<T>(
 		backoffFactor = 2,
 		jitter = true,
 		shouldRetry = () => true,
-		onRetry
+		onRetry,
 	} = options
 
 	// Validate numeric options
@@ -101,7 +101,7 @@ export async function withRetry<T>(
 		} catch (error) {
 			// Ensure we always have an Error instance
 			lastError = error instanceof Error ? error : new Error(String(error))
-			
+
 			if (attempt === maxAttempts) {
 				break
 			}
@@ -117,12 +117,12 @@ export async function withRetry<T>(
 			}
 
 			// Add jitter to prevent thundering herd problem
-			const actualDelay = jitter 
+			const actualDelay = jitter
 				? delay * (0.5 + Math.random() * 0.5) // Random between 50-100% of delay
 				: delay
-			
-			await new Promise(resolve => setTimeout(resolve, actualDelay))
-			
+
+			await new Promise((resolve) => setTimeout(resolve, actualDelay))
+
 			// Calculate next delay after the current retry
 			delay = Math.min(delay * backoffFactor, maxDelay)
 		}
