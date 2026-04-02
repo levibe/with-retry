@@ -113,12 +113,7 @@ export async function withRetry<T>(
 
 			// Call onRetry callback before retrying
 			if (onRetry) {
-				try {
-					await onRetry(lastError, attempt)
-				} catch (onRetryError) {
-					// If onRetry throws, stop retrying and throw that error
-					throw onRetryError
-				}
+				await onRetry(lastError, attempt)
 			}
 
 			// Add jitter to prevent thundering herd problem
