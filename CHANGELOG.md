@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- `signal` option: an abort stops retrying, and a wait between attempts rejects at once with `signal.reason`
+- `signal` option: an abort stops retrying and rejects with `signal.reason`, at once during a wait between attempts
 
 ## [0.2.5] - 2026-04-02
 

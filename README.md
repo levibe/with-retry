@@ -110,7 +110,7 @@ await withRetry(
 
 ### Cancellation
 
-Pass an `AbortSignal` to stop retrying. An abort during the wait between attempts rejects at once with `signal.reason`, and an already-aborted signal rejects before the first attempt.
+Pass an `AbortSignal` to stop retrying. Once it aborts, `withRetry` rejects with `signal.reason` as is: at once during a wait between attempts, before the first attempt if it was already aborted, and in place of the error from an attempt that was running. An attempt that succeeds after the abort still returns its result.
 
 ```typescript
 const controller = new AbortController()
@@ -180,7 +180,7 @@ interface RetryOptions {
 - If all retry attempts fail, the last error is thrown
 - If `shouldRetry` returns `false`, retrying stops immediately
 - If `onRetry` throws an error, retrying stops and that error is thrown
-- If `signal` aborts during a wait or before an attempt, `signal.reason` is thrown; if it aborts while an attempt is running, that attempt's error is thrown without a retry
+- If `signal` aborts, `signal.reason` is thrown as is, in place of any attempt or `onRetry` error
 - Errors are passed to `shouldRetry` for custom handling logic
 
 ## TypeScript Support

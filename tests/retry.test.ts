@@ -512,20 +512,45 @@ describe('withRetry', () => {
 			expect(vi.getTimerCount()).toBe(0)
 		})
 
-		it('throws the attempt error without retrying when aborted during an attempt', async () => {
+		it('throws the reason, not the attempt error, when aborted during an attempt', async () => {
 			const controller = new AbortController()
-			const attemptError = new Error('attempt aborted')
 			const operation = vi.fn().mockImplementation(async () => {
-				controller.abort()
-				throw attemptError
+				controller.abort('user cancelled')
+				throw new Error('unrelated failure')
 			})
 			const shouldRetry = vi.fn().mockReturnValue(true)
 
 			await expect(
 				withRetry(operation, { maxAttempts: 5, shouldRetry, signal: controller.signal })
-			).rejects.toBe(attemptError)
+			).rejects.toBe('user cancelled')
 			expect(operation).toHaveBeenCalledTimes(1)
 			expect(shouldRetry).not.toHaveBeenCalled()
+		})
+
+		it('throws the reason when onRetry fails after an abort', async () => {
+			const controller = new AbortController()
+			const reason = new Error('stopped')
+			const operation = vi.fn().mockRejectedValue(new Error('fail'))
+
+			const promise = withRetry(operation, {
+				signal: controller.signal,
+				onRetry: async () => {
+					controller.abort(reason)
+					throw new Error('logging failed')
+				},
+			})
+
+			await expect(promise).rejects.toBe(reason)
+		})
+
+		it('returns the result of an attempt that succeeds after an abort', async () => {
+			const controller = new AbortController()
+			const operation = vi.fn().mockImplementation(async () => {
+				controller.abort()
+				return 'success'
+			})
+
+			await expect(withRetry(operation, { signal: controller.signal })).resolves.toBe('success')
 		})
 
 		it('retries normally and stops listening once a wait ends', async () => {
