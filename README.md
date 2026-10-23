@@ -108,6 +108,19 @@ await withRetry(
 )
 ```
 
+### Cancellation
+
+Pass an `AbortSignal` to stop retrying. An abort during the wait between attempts rejects at once with `signal.reason`, and an already-aborted signal rejects before the first attempt.
+
+```typescript
+const controller = new AbortController()
+
+// Pass the signal to the operation too, so an attempt in flight stops as well
+const data = await withRetry(() => fetch(url, { signal: controller.signal }), {
+	signal: controller.signal,
+})
+```
+
 ### Database Operations
 
 ```typescript
@@ -151,6 +164,7 @@ interface RetryOptions {
 	jitter?: boolean // Add randomness to delays (default: true)
 	shouldRetry?: (error: Error) => boolean // Custom retry logic (default: always retry)
 	onRetry?: (error: Error, attempt: number) => void | Promise<void> // Callback before each retry
+	signal?: AbortSignal // Stops retrying when aborted
 }
 ```
 
@@ -166,6 +180,7 @@ interface RetryOptions {
 - If all retry attempts fail, the last error is thrown
 - If `shouldRetry` returns `false`, retrying stops immediately
 - If `onRetry` throws an error, retrying stops and that error is thrown
+- If `signal` aborts during a wait or before an attempt, `signal.reason` is thrown; if it aborts while an attempt is running, that attempt's error is thrown without a retry
 - Errors are passed to `shouldRetry` for custom handling logic
 
 ## TypeScript Support
@@ -182,6 +197,7 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes in each version.
 
 ### Recent Changes
 
+- **v0.3.0** - Added `signal` for cancellation
 - **v0.2.0** - Added `onRetry` callback for monitoring retry attempts
 - **v0.1.0** - Initial release with core retry functionality
 

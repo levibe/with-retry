@@ -459,4 +459,93 @@ describe('withRetry', () => {
 			])
 		})
 	})
+
+	describe('signal', () => {
+		it('rejects with the reason before the first attempt when already aborted', async () => {
+			const operation = vi.fn().mockResolvedValue('success')
+			const controller = new AbortController()
+			const reason = new Error('stopped')
+			controller.abort(reason)
+
+			await expect(withRetry(operation, { signal: controller.signal })).rejects.toBe(reason)
+			expect(operation).not.toHaveBeenCalled()
+		})
+
+		it('rejects at once with the reason when aborted during a wait', async () => {
+			const operation = vi.fn().mockRejectedValue(new Error('fail'))
+			const controller = new AbortController()
+			const reason = new Error('stopped')
+
+			const promise = withRetry(operation, {
+				maxAttempts: 5,
+				initialDelay: 60000,
+				maxDelay: 60000,
+				jitter: false,
+				signal: controller.signal,
+			})
+			const settled = promise.catch((error) => error)
+
+			await vi.advanceTimersByTimeAsync(1000)
+			controller.abort(reason)
+
+			expect(await settled).toBe(reason)
+			expect(operation).toHaveBeenCalledTimes(1)
+			expect(vi.getTimerCount()).toBe(0)
+		})
+
+		it('rejects at once when aborted during onRetry, before the wait starts', async () => {
+			const controller = new AbortController()
+			const reason = new Error('stopped')
+			const operation = vi.fn().mockRejectedValue(new Error('fail'))
+
+			const promise = withRetry(operation, {
+				initialDelay: 60000,
+				maxDelay: 60000,
+				signal: controller.signal,
+				onRetry: async () => {
+					controller.abort(reason)
+				},
+			})
+
+			await expect(promise).rejects.toBe(reason)
+			expect(operation).toHaveBeenCalledTimes(1)
+			expect(vi.getTimerCount()).toBe(0)
+		})
+
+		it('throws the attempt error without retrying when aborted during an attempt', async () => {
+			const controller = new AbortController()
+			const attemptError = new Error('attempt aborted')
+			const operation = vi.fn().mockImplementation(async () => {
+				controller.abort()
+				throw attemptError
+			})
+			const shouldRetry = vi.fn().mockReturnValue(true)
+
+			await expect(
+				withRetry(operation, { maxAttempts: 5, shouldRetry, signal: controller.signal })
+			).rejects.toBe(attemptError)
+			expect(operation).toHaveBeenCalledTimes(1)
+			expect(shouldRetry).not.toHaveBeenCalled()
+		})
+
+		it('retries normally and stops listening once a wait ends', async () => {
+			const controller = new AbortController()
+			const addSpy = vi.spyOn(controller.signal, 'addEventListener')
+			const removeSpy = vi.spyOn(controller.signal, 'removeEventListener')
+			const operation = vi
+				.fn()
+				.mockImplementationOnce(() => Promise.reject(new Error('fail')))
+				.mockResolvedValue('success')
+
+			const promise = withRetry(operation, {
+				initialDelay: 100,
+				jitter: false,
+				signal: controller.signal,
+			})
+			await vi.advanceTimersByTimeAsync(100)
+
+			expect(await promise).toBe('success')
+			expect(removeSpy).toHaveBeenCalledWith('abort', addSpy.mock.calls[0][1])
+		})
+	})
 })

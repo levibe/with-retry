@@ -16,6 +16,28 @@ export interface RetryOptions {
 	shouldRetry?: (error: Error) => boolean
 	/** Callback executed before each retry attempt */
 	onRetry?: (error: Error, attempt: number) => void | Promise<void>
+	/** Stops retrying when aborted; a wait between attempts rejects at once with `signal.reason` */
+	signal?: AbortSignal
+}
+
+/** Resolve after `ms`, or reject with the signal's reason as soon as it aborts */
+function wait(ms: number, signal?: AbortSignal): Promise<void> {
+	return new Promise((resolve, reject) => {
+		// An abort before the wait already fired its event, so no listener would hear it
+		if (signal?.aborted) {
+			reject(signal.reason)
+			return
+		}
+		const onAbort = () => {
+			clearTimeout(timer)
+			reject(signal!.reason)
+		}
+		const timer = setTimeout(() => {
+			signal?.removeEventListener('abort', onAbort)
+			resolve()
+		}, ms)
+		signal?.addEventListener('abort', onAbort, { once: true })
+	})
 }
 
 /**
@@ -42,6 +64,12 @@ export interface RetryOptions {
  *   maxAttempts: 5,
  *   initialDelay: 500,
  *   shouldRetry: (error) => error.message !== 'FATAL'
+ * })
+ *
+ * // Stop retrying when the caller gives up
+ * const controller = new AbortController()
+ * const result = await withRetry(() => apiCall(controller.signal), {
+ *   signal: controller.signal
  * })
  *
  * // With onRetry callback for logging
@@ -72,6 +100,7 @@ export async function withRetry<T>(
 		jitter = true,
 		shouldRetry = () => true,
 		onRetry,
+		signal,
 	} = options
 
 	// Validate numeric options
@@ -95,6 +124,8 @@ export async function withRetry<T>(
 	let delay = initialDelay
 
 	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		signal?.throwIfAborted()
+
 		try {
 			const result = await operation()
 			return result
@@ -106,8 +137,8 @@ export async function withRetry<T>(
 				break
 			}
 
-			// Check if we should retry this error
-			if (!shouldRetry(lastError)) {
+			// An attempt that failed after an abort keeps its own error, which usually says so
+			if (signal?.aborted || !shouldRetry(lastError)) {
 				break
 			}
 
@@ -121,7 +152,7 @@ export async function withRetry<T>(
 				? delay * (0.5 + Math.random() * 0.5) // Random between 50-100% of delay
 				: delay
 
-			await new Promise((resolve) => setTimeout(resolve, actualDelay))
+			await wait(actualDelay, signal)
 
 			// Calculate next delay after the current retry
 			delay = Math.min(delay * backoffFactor, maxDelay)
